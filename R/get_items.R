@@ -59,8 +59,6 @@ checkit = function(toLoad_, data_, code_) {
     parent.env(isolated_) = as.environment(sprintf('package:%s', pkg_))
   }
 
-
-
   check_ = tryCatch(
     expr = {
       with(isolated_, {eval(code_)})
