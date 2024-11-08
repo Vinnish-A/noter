@@ -1,3 +1,7 @@
+#' noter
+#'
+#' @return NULL
+#' @export
 noter = function(
     code,
     comments = NULL,
@@ -19,8 +23,9 @@ noter = function(
   }
 
   text = deparse(code)
-  symbols = get_symbols(code)
+  symbols = get_symbols(eval(parse(text = sprintf('function() { %s }', text))))
 
+  # browser()
   # ready to reproduce
   name = taskID
   pkgs = get_pkgs(symbols)

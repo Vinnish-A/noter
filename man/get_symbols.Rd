@@ -4,11 +4,15 @@
 \alias{get_symbols}
 \title{get_symbols}
 \usage{
-get_symbols(ast_node_)
+get_symbols(fun_)
 }
 \arguments{
 \item{ast_node_}{}
 }
+\value{
+symbols
+}
 \description{
 get_symbols
 }
+\keyword{internal}

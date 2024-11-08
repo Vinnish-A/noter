@@ -1,24 +1,36 @@
 
 
+
+
+is.global = function(chr_) {
+
+  T %in% getAnywhere(chr_)$where == '.GlobalEnv'
+
+}
+
 #' get_symbols
 #'
 #' @param ast_node_
 #'
-#' @import rlang
+#' @import rlang codetools purrr
 #'
-#' @return
-#' @export
-get_symbols = function(ast_node_) {
+#' @return symbols
+#' @keywords internal
+get_symbols = function(fun_) {
 
-  if (is_symbol(ast_node_)) {
-    return(as.character(ast_node_))
+  symbols_ = as.list(findGlobals(fun_))
+
+  # browser()
+  for (i_ in seq_along(symbols_)) {
+
+    symbol_ = symbols_[[i_]]
+    if (is.function(easyGet(symbol_)) & is.global(symbol_)) {
+      symbols_[[i_]] = get_symbols2(easyGet(symbol_))
+    }
+
   }
 
-  if (is_pairlist(ast_node_) || is.call(ast_node_)) {
-    return(flatten_chr(map(ast_node_, get_symbols)))
-  }
-
-  return(NULL)
+  return(unlist(symbols_))
 
 }
 
@@ -47,6 +59,15 @@ get_data = function(symbols_, pkgs_) {
   names(data_) = toGet_
 
   return(data_)
+
+}
+
+easyGet = function(chr_, env_ = .GlobalEnv) {
+
+  tryCatch(
+    get(chr_, envir = env_),
+    error = \(e) return(NULL)
+  )
 
 }
 

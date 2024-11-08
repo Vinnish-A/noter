@@ -7,6 +7,10 @@ resetTrace = function() {
   last_trace$append = NULL
 }
 
+#' undo
+#'
+#' @return NULL
+#' @export
 undo = function(path = getOption('noter_path')) {
 
   modify = 0
