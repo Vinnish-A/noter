@@ -4,7 +4,7 @@
 
 is.global = function(chr_) {
 
-  T %in% getAnywhere(chr_)$where == '.GlobalEnv'
+  T %in% (getAnywhere(chr_)$where == '.GlobalEnv')
 
 }
 
@@ -25,7 +25,7 @@ get_symbols = function(fun_) {
 
     symbol_ = symbols_[[i_]]
     if (is.function(easyGet(symbol_)) & is.global(symbol_)) {
-      symbols_[[i_]] = get_symbols2(easyGet(symbol_))
+      symbols_[[i_]] = get_symbols(easyGet(symbol_))
     }
 
   }
@@ -71,18 +71,22 @@ easyGet = function(chr_, env_ = .GlobalEnv) {
 
 }
 
-checkit = function(toLoad_, data_, code_) {
+checkit = function(toLoad_, data_, text_) {
 
-  data_ = appendWithName(data_, code_ = code_)
+  data_ = appendWithName(data_, text_ = text_)
   isolated_ = list2env(data_, parent = emptyenv())
 
+  env_now_ = isolated_
   for (pkg_ in c(firstly(), toLoad_)) {
-    parent.env(isolated_) = as.environment(sprintf('package:%s', pkg_))
+    pkg_ = loadNamespace(pkg_)
+    env_new_ = new.env(parent = pkg_)
+    parent.env(env_now_) = env_new_
+    env_now_ = env_new_
   }
 
   check_ = tryCatch(
     expr = {
-      with(isolated_, {eval(code_)})
+      res = eval(parse(text = text_), envir = isolated_)
       return('pass')
     },
     error = function(e__) {

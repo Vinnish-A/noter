@@ -8,36 +8,48 @@ noter = function(
     taskID = tmpID(),
     path = getOption('noter_path'),
     check = getOption('noter_check'),
-    template = getOption('noter_template')
+    template = getOption('noter_template'),
+    expr = F,
+    assignment = NULL,
+    mustLoad = NULL
 ) {
 
   # init
   resetTrace()
   if (!dir.exists(dirname(path))) dir.create(dirname(path))
 
+  # accessory
+  assignment = enexpr(assignment)
+  assignment = spliceAll(assignment)
+  if (assignment != '') assignment = paste0(assignment, '\n')
+
   # encode
-  if (is.character(code)) {
-    code = parse(text = code)[[1]]
-  } else {
+  if (expr) {
     code = substitute(code)
+    text = paste('{', assignment, paste(deparse(code), collapse = '\n'), '}', sep = '\n')
+  }
+  if (is.character(code)) {
+    text = paste('{', assignment, code, '}', sep = '\n')
+  } else if (is.function(code)) {
+    text = capture.output(code)
+    text = paste(text[-c(1, length(text))], collapse = '\n')
+    text = paste('{', assignment, text, '}', sep = '\n')
   }
 
-  text = deparse(code)
   symbols = get_symbols(eval(parse(text = sprintf('function() { %s }', text))))
 
-  # browser()
   # ready to reproduce
   name = taskID
   pkgs = get_pkgs(symbols)
-  toLoad = get_toLoad(pkgs)
+  toLoad = get_toLoad(pkgs) |> c(mustLoad)
   data = get_data(symbols, pkgs)
 
   # check
-  if (check) checkit(toLoad, data, code)
+  if (check) checkit(toLoad, data, text)
 
   # generate text
   head = headMaker(path, template)
-  body = bodyMaker(length(data), name, comments, toLoad, text)
+  body = bodyMaker(length(data), name, comments, toLoad, substr(text, 2, nchar(text)-1))
 
   if (is.null(head)) {
     cat(body, file = path, append = T)
@@ -56,3 +68,5 @@ noter = function(
   cat(body, sep = '\n')
 
 }
+
+

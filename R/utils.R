@@ -23,6 +23,51 @@ appendWithName = function(lst_, ...) {
 
 }
 
+run_gently = function(expr_, timeout_ = 0.1, env_ = .GlobalEnv) {
+
+  setTimeLimit(elapsed = timeout_, transient = TRUE)
+
+  res_ = tryCatch(
+    eval(expr_, envir = env_),
+    error = function(e__) {
+      obj__ = list()
+      class(obj__) = 'customCall'
+      return(obj__)
+    }
+  )
+
+  setTimeLimit(cpu = Inf, elapsed = Inf)
+
+  return(res_)
+
+}
+
+is.customCall = function(obj_) {
+
+  'customCall' %in% class(obj_)
+
+}
+
+spliceOne = function(assignment_, fun_) {
+
+  assignment_ = as.character(assignment_)
+  body_ = capture.output(fun_)
+  body_ = paste(body_, collapse = '\n')
+
+  paste(assignment_, body_, sep = ' = ')
+
+}
+
+spliceAll = function(lst_) {
+
+  # assignments_ = enexpr(lst_)
+  assignments_ = as.character(lst_)[-1]
+  assignments_ = map2(assignments_, lapply(assignments_, get, envir = .GlobalEnv), spliceOne)
+
+  paste(unlist(assignments_), collapse = '\n\n')
+
+}
+
 firstly = function() {
   c('stats', 'graphics', 'grDevices', 'utils', 'datasets', 'methods', 'base')
 }
